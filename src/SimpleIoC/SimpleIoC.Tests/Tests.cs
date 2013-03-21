@@ -1,0 +1,123 @@
+﻿using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Threading.Tasks;
+using NUnit.Framework;
+
+namespace SimpleIoC.Tests
+{
+    [TestFixture]
+    public class Tests
+    {
+        [Test]
+        public void CanCreateContainer()
+        {
+            Assert.DoesNotThrow(()=>
+            {
+                var container = new Container();
+            });
+        }
+
+        [Test]
+        public void CanRegisterGenericLabmba()
+        {
+            var container = new Container();
+            container.Register<ITest>(()=> new TestImp());
+            var impl = container.Resolve<ITest>();
+            Assert.NotNull(impl);
+        }
+
+        [Test]
+        public void CanRegisterGeneric()
+        {
+            var container = new Container();
+            container.Register<ITest,TestImp>();
+            var impl = container.Resolve<ITest>();
+            Assert.NotNull(impl);
+        }
+
+        [Test]
+        public void CanResolveParametred()
+        {
+            var container = new Container();
+            container.Register<ITestDependency,TestDependency>();
+            container.Register<ITest, TestDependent>();
+            var impl = container.Resolve<ITest>();
+            Assert.NotNull(impl);
+        }
+
+        [Test]
+        public void CanResolveParametredTwice()
+        {
+            var container = new Container();
+            container.Register<ITestDependency,TestDependency>();
+            container.Register<ITest, TestDependent>();
+            var impl = container.Resolve<ITest>();
+            impl = container.Resolve<ITest>();
+            Assert.NotNull(impl);
+        }
+
+        [Test]
+        public void CanResolveWithoutRegistration()
+        {
+            var container = new Container();
+            var impl = container.Resolve<TestImp>();
+            Assert.NotNull(impl);
+        }
+
+        [Test]
+        public void CanResolveParametredWithoutRegistration()
+        {
+            var container = new Container();
+            container.Register<ITestDependency, TestDependency>();
+            var impl = container.Resolve<TestDependent>();
+            Assert.NotNull(impl);
+        }
+
+        //just lucky :)
+        [Test]
+        public void AsyncTest()
+        {
+            var container = new Container();
+            container.Register<ITestDependency, TestDependency>();
+            container.Register<ITest, TestDependent>();
+            var bag = new ConcurrentBag<ITest>();
+            for (int i = 0; i < 1000; i++)
+            {
+                Task.Factory.StartNew(() => bag.Add(container.Resolve<ITest>()));
+            }
+            var set = new HashSet<int>();
+            foreach (var item in bag)
+            {
+                set.Add(item.GetHashCode());
+            }
+            Assert.AreEqual(bag.Count, set.Count);
+        }
+    }
+
+    public class TestImp:ITest
+    {
+    }
+
+    public interface ITest
+    {
+        
+    }
+
+    public class TestDependent : ITest
+    {
+        private readonly ITestDependency _dependency;
+
+        public TestDependent(ITestDependency dependency)
+        {
+            _dependency = dependency;
+        }
+    }
+
+    public interface ITestDependency
+    {
+    }
+
+    public class TestDependency : ITestDependency
+    {
+    }
+}
