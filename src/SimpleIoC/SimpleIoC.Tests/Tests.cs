@@ -96,6 +96,15 @@ namespace SimpleIoC.Tests
             Assert.NotNull(impl);
         }
 
+        [Test]
+        public void CanResolveSingleton()
+        {
+            var container = new Container();
+            container.RegisterSingleton<ITest>(new TestImp());
+            var impl = container.Resolve<ITest>();
+            Assert.NotNull(impl);
+        }
+
         //just lucky :)
         [Test]
         public void AsyncTest()
