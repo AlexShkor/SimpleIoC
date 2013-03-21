@@ -13,13 +13,13 @@ namespace SimpleIoC
 
         public void Register<TInterface, TImpl>() where TImpl: TInterface
         {
-            _mappings.Add(typeof(TInterface),typeof(TImpl));
-            _resolvers.Add(typeof(TInterface), ResolveFromMapping);
+            _mappings[typeof(TInterface)] = typeof (TImpl);
+            _resolvers[typeof(TInterface)] = ResolveFromMapping;
         }
 
         public void Register<TInterface>(Func<TInterface> resolver)
         {
-            _resolvers.Add(typeof(TInterface), (x) => resolver());
+            _resolvers[typeof(TInterface)] = (x) => resolver();
         }
 
         public object Resolve(Type type)

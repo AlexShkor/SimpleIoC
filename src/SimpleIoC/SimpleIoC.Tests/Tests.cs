@@ -27,6 +27,17 @@ namespace SimpleIoC.Tests
         }
 
         [Test]
+        public void CanRebindLabmba()
+        {
+            var container = new Container();
+            container.Register<ITest>(()=> new TestImp());
+            container.Register<ITest>(()=> new TestDependent(null));
+            var impl = container.Resolve<ITest>();
+            Assert.NotNull(impl);
+            Assert.AreEqual(typeof(TestDependent), impl.GetType());
+        }
+
+        [Test]
         public void CanRegisterGeneric()
         {
             var container = new Container();
@@ -43,6 +54,18 @@ namespace SimpleIoC.Tests
             container.Register<ITest, TestDependent>();
             var impl = container.Resolve<ITest>();
             Assert.NotNull(impl);
+        }
+
+        [Test]
+        public void CanRrebindGeneric()
+        {
+            var container = new Container();
+            container.Register<ITestDependency,TestDependency>();
+            container.Register<ITest, TestImp>();
+            container.Register<ITest, TestDependent>();
+            var impl = container.Resolve<ITest>();
+            Assert.NotNull(impl);
+            Assert.AreEqual(typeof(TestDependent),impl.GetType());
         }
 
         [Test]
