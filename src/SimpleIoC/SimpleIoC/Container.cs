@@ -9,6 +9,7 @@ namespace SimpleIoC
     {
         private readonly Dictionary<Type, Func<Type, object>> _resolvers = new Dictionary<Type, Func<Type, object>>(); 
         private readonly Dictionary<Type, Type> _mappings = new Dictionary<Type, Type>();
+        private readonly Dictionary<Type, object> _singletons = new Dictionary<Type, object>();
         private readonly Dictionary<Type, Tuple<ConstructorInfo,ParameterInfo[]>> _constructors = new Dictionary<Type, Tuple<ConstructorInfo,ParameterInfo[]>>(); 
 
         public void Register<TInterface, TImpl>() where TImpl: TInterface
@@ -20,6 +21,13 @@ namespace SimpleIoC
         public void Register<TInterface>(Func<TInterface> resolver)
         {
             _resolvers[typeof(TInterface)] = (x) => resolver();
+        }
+
+        public void RegisterSingleton<TInterface>(TInterface obj)
+        {
+            var type = typeof (TInterface);
+            _singletons[type] = obj;
+            _resolvers[type] = ResolveWithSingleton;
         }
 
         public object Resolve(Type type)
@@ -72,6 +80,11 @@ namespace SimpleIoC
                 dependencies.Add(parameterInfo.ParameterType, Resolve(parameterInfo.ParameterType));
             }
             return constructorInfo.Item1.Invoke(dependencies.Values.ToArray());
+        }
+
+        private object ResolveWithSingleton(Type type)
+        {
+            return _singletons[type];
         }
     }
 }
