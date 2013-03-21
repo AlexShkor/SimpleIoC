@@ -1,5 +1,8 @@
-﻿using System.Collections.Concurrent;
+﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using NUnit.Framework;
 
@@ -113,7 +116,7 @@ namespace SimpleIoC.Tests
             container.Register<ITestDependency, TestDependency>();
             container.Register<ITest, TestDependent>();
             var bag = new ConcurrentBag<ITest>();
-            for (int i = 0; i < 1000; i++)
+            for (int i = 0; i < 1000000; i++)
             {
                 Task.Factory.StartNew(() => bag.Add(container.Resolve<ITest>()));
             }
@@ -123,6 +126,21 @@ namespace SimpleIoC.Tests
                 set.Add(item.GetHashCode());
             }
             Assert.AreEqual(bag.Count, set.Count);
+        }
+
+        [Test]
+        public void Test()
+        {
+            var container = new Container();
+            container.Register<ITest, TestImp>();
+            var stopwatch = Stopwatch.StartNew();
+                for (int i = 0; i < 1000000; i++)
+                {
+                    container.Resolve<ITest>();
+                }
+            stopwatch.Stop();
+            Assert.Less(stopwatch.Elapsed.TotalMilliseconds,1000, "Elapsed" + Math.Round(stopwatch.Elapsed.TotalMilliseconds));
+            Assert.Pass("Elapsed " + Math.Round(stopwatch.Elapsed.TotalMilliseconds));
         }
     }
 
