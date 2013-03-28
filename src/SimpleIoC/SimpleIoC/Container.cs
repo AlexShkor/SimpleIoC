@@ -1,16 +1,18 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Threading;
 
 namespace SimpleIoC
 {
     public class Container: IContainer
     {
-        private readonly Dictionary<Type, Func<Type, object>> _resolvers = new Dictionary<Type, Func<Type, object>>(); 
+        private readonly Dictionary<Type, Func<Type, object>> _resolvers = new Dictionary<Type, Func<Type, object>>();
         private readonly Dictionary<Type, Type> _mappings = new Dictionary<Type, Type>();
         private readonly Dictionary<Type, object> _singletons = new Dictionary<Type, object>();
-        private readonly Dictionary<Type, Tuple<ConstructorInfo,ParameterInfo[]>> _constructors = new Dictionary<Type, Tuple<ConstructorInfo,ParameterInfo[]>>(); 
+        private readonly Dictionary<Type, Tuple<ConstructorInfo, ParameterInfo[]>> _constructors = new Dictionary<Type, Tuple<ConstructorInfo, ParameterInfo[]>>(); 
 
         public void Register<TInterface, TImpl>() where TImpl: TInterface
         {
@@ -36,7 +38,7 @@ namespace SimpleIoC
             {
                 return _resolvers[type](type);
             }
-            return ResolveType(type,null);
+            return ResolveType(type, null);
         }
 
         public T Resolve<T>()
@@ -52,7 +54,7 @@ namespace SimpleIoC
         private object ResolveType(Type implType, Type baseType)
         {
             var constructors = implType.GetConstructors();
-            foreach (var info in constructors.Select(x=> new Tuple<ConstructorInfo,ParameterInfo[]>(x, x.GetParameters())).OrderBy(x=> x.Item2.Count()))
+            foreach (var info in constructors.Select(x => new Tuple<ConstructorInfo, ParameterInfo[]>(x, x.GetParameters())).OrderBy(x => x.Item2.Count()))
             {
                 try
                 {
@@ -60,7 +62,7 @@ namespace SimpleIoC
                 }
                 finally
                 {
-                    _constructors.Add(baseType ?? implType, info);
+                    _constructors[baseType ?? implType] = info;
                     _resolvers[baseType ?? implType] = ResolveWithSavedConstructor;
                 }
             }

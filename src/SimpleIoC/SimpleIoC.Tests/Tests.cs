@@ -129,7 +129,7 @@ namespace SimpleIoC.Tests
         }
 
         [Test]
-        public void Test()
+        public void PerformanceTest()
         {
             var container = new Container();
             container.Register<ITest, TestImp>();
