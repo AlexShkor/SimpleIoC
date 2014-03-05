@@ -6,6 +6,14 @@ if ($result -ne $branch){
 git checkout $branch
 }
 
+try{
+$result = git pull origin "master";
+}catch [Exception]
+{
+    "!!!!!!!!!!!!!!"
+}
+
+
 $result = git merge master
 $result 
 if ($result -eq "Already up-to-date."){
